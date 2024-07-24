@@ -1,7 +1,7 @@
-const express = require('express');
-const connectDB = require('./config/db');
-const dotenv = require('dotenv');
-const bodyParser = require('body-parser');
+const express = require("express");
+const connectDB = require("./config/db");
+const dotenv = require("dotenv");
+const bodyParser = require("body-parser");
 
 dotenv.config();
 
@@ -11,9 +11,9 @@ const app = express();
 
 app.use(bodyParser.json());
 
-app.use('/api/auth', require('./routes/authRoutes'));
-// app.use('/api/products', require('./routes/productRoutes'));
-// app.use('/api/variants', require('./routes/variantRoutes'));
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/products", require("./routes/productRoutes"));
+app.use('/api/variants', require('./routes/variantRoutes'));
 // app.use('/api/cart', require('./routes/cartRoutes'));
 
 const PORT = process.env.PORT || 5000;
