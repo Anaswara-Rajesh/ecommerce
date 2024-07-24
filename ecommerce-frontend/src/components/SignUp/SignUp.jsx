@@ -6,19 +6,29 @@ import { useState } from "react";
 import { TextField, Button, Container } from "@mui/material";
 import NavBar from "../Layout/NavBar";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { login } from "../../store/authSlice";
+import { registerUser } from "../../services/api";
 
 function SignUp() {
+  const navigate = useNavigate();
+
+  const dispatch = useDispatch();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log(name, "name", email, "email", password, "pas");
+      const data = await registerUser({ name, email, password });
+      console.log(data, "data>>>>>>...");
+      dispatch(login(data));
       alert("Registration successful!");
       navigate("/sign-in");
     } catch (error) {
+      console.log(error, "error>>>>>>>>>>>.");
       alert("Registration failed. Please try again.");
     }
   };

@@ -7,15 +7,22 @@ import { TextField, Button, Container } from "@mui/material";
 import { useState } from "react";
 import NavBar from "../Layout/NavBar";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from 'react-redux';
+import { login } from '../../store/authSlice';
+import { loginUser } from '../../services/api';
 
 function SignIn() {
+  const navigate = useNavigate();
+
+  const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // const data = await loginUser({ email, password });
+      // dispatch(login(data));
       alert("Login successful!");
       navigate("/product-list");
     } catch (error) {
