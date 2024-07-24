@@ -1,8 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import ProductNavbar from "../Layout/NavBar";
+import ProductNavbar from "../Layout/ProductNavbar";
 import {
-  CircularProgress,
   Container,
   Typography,
   Grid,
@@ -12,36 +11,49 @@ import {
   Button,
 } from "@mui/material";
 
+const images = [
+  "/shirt1.jpeg",
+  "/shirt2.jpeg",
+  "/shirt3.jpeg",
+  "/shirt4.jpeg",
+  "/shirt5.jpeg",
+];
+
+const getRandomImage = () => {
+  const randomIndex = Math.floor(Math.random() * images.length);
+  return images[randomIndex];
+};
+
 const ProductList = () => {
   const products = [
     {
       id: 1,
-      name: "nbhdbcsd",
+      name: "Shirt1",
       description: "tfhg",
     },
     {
-      id: 1,
-      name: "nbhdbcsd",
+      id: 2,
+      name: "Shirt2",
       description: "tfhg",
     },
     {
-      id: 1,
-      name: "nbhdbcsd",
+      id: 3,
+      name: "Shirt3",
       description: "tfhg",
     },
     {
-      id: 1,
-      name: "nbhdbcsd",
+      id: 4,
+      name: "Shirt4",
       description: "tfhg",
     },
     {
-      id: 1,
-      name: "nbhdbcsd",
+      id: 5,
+      name: "Shirt5",
       description: "tfhg",
     },
     {
-      id: 1,
-      name: "nbhdbcsd",
+      id: 6,
+      name: "Shirt6",
       description: "tfhg",
     },
   ];
@@ -51,7 +63,7 @@ const ProductList = () => {
       <ProductNavbar />
       <Container style={{ paddingTop: "10rem" }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Products
+          Product List
         </Typography>
         <Grid container spacing={3}>
           {products?.map((product) => (
@@ -59,8 +71,8 @@ const ProductList = () => {
               <Card>
                 <CardMedia
                   component="img"
-                  height="140"
-                  image={product.image}
+                  height="250"
+                  image={getRandomImage()}
                   alt={product.name}
                 />
                 <CardContent>
