@@ -42,9 +42,8 @@ exports.loginUser = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     console.log(user, "nnnnnnnnnnnnnnnnnnnnnn");
-    if (user) {
+    if (user && (await user.matchPassword(password))) {
       const token = generateToken(user);
-      console.log(token,"token");
       console.log(token, "token>>>>>>>>>>>.....");
       res.json({
         _id: user._id,
@@ -55,6 +54,23 @@ exports.loginUser = async (req, res) => {
     } else {
       res.status(401).json({ message: "Invalid email or password" });
     }
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.getUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      isAdmin: user.email === "admin@gmail.com",
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

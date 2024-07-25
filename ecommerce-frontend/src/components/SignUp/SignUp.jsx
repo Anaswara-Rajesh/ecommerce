@@ -22,7 +22,7 @@ function SignUp() {
     e.preventDefault();
     try {
       console.log(name, "name", email, "email", password, "pas");
-      const data = await registerUser({ name, email, password });
+      const data = await registerUser({ username:name, email, password });
       console.log(data, "data>>>>>>...");
       dispatch(login(data));
       alert("Registration successful!");

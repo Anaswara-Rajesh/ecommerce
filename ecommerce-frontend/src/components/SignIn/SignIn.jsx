@@ -21,8 +21,8 @@ function SignIn() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // const data = await loginUser({ email, password });
-      // dispatch(login(data));
+      const data = await loginUser({ email, password });
+      dispatch(login(data));
       alert("Login successful!");
       navigate("/product-list");
     } catch (error) {

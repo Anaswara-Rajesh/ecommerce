@@ -1,5 +1,4 @@
-const Product = require('../models/Product');
-
+const Product = require("../models/Product");
 
 exports.createProduct = async (req, res) => {
   const { name, description, price } = req.body;
@@ -13,40 +12,37 @@ exports.createProduct = async (req, res) => {
 
     res.status(201).json(product);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find().populate('variants');
+    const products = await Product.find().populate("variants");
     res.json(products);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
 
 exports.getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate('variants');
+    const product = await Product.findById(req.params.id).populate("variants");
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
     res.json(product);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
 
 exports.updateProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
 
     product.name = req.body.name || product.name;
@@ -56,23 +52,21 @@ exports.updateProduct = async (req, res) => {
     const updatedProduct = await product.save();
     res.json(updatedProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-
 exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const result = await Product.deleteOne({ _id: req.params.id });
 
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Product not found" });
     }
 
-    await product.remove();
-    res.json({ message: 'Product removed' });
+    res.json({ message: "Product removed" });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -83,17 +77,17 @@ exports.searchProducts = async (req, res) => {
   const query = {};
 
   if (name) {
-    query.name = { $regex: name, $options: 'i' }; 
+    query.name = { $regex: name, $options: "i" };
   }
 
   if (price) {
-    query.price = { $lte: price }; 
+    query.price = { $lte: price };
   }
 
   try {
-    const products = await Product.find(query).populate('variants');
+    const products = await Product.find(query).populate("variants");
     res.json(products);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

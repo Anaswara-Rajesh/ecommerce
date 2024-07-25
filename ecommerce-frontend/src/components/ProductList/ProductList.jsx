@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ProductNavbar from "../Layout/ProductNavbar";
 import {
@@ -9,7 +9,14 @@ import {
   CardContent,
   CardMedia,
   Button,
+  TextField,
+  IconButton,
+  Tooltip,
+  Box,
 } from "@mui/material";
+import { Edit, Delete } from "@mui/icons-material";
+import { fetchProducts, deleteProduct, fetchUser } from "../../services/api";
+import EditProductModal from "../modal/EditProductModal";
 
 const images = [
   "/shirt1.jpeg",
@@ -25,48 +32,84 @@ const getRandomImage = () => {
 };
 
 const ProductList = () => {
-  const products = [
-    {
-      id: 1,
-      name: "Shirt1",
-      description: "tfhg",
-    },
-    {
-      id: 2,
-      name: "Shirt2",
-      description: "tfhg",
-    },
-    {
-      id: 3,
-      name: "Shirt3",
-      description: "tfhg",
-    },
-    {
-      id: 4,
-      name: "Shirt4",
-      description: "tfhg",
-    },
-    {
-      id: 5,
-      name: "Shirt5",
-      description: "tfhg",
-    },
-    {
-      id: 6,
-      name: "Shirt6",
-      description: "tfhg",
-    },
-  ];
+  const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await fetchProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      }
+    };
+
+    const checkAdminStatus = async () => {
+      try {
+        const user = await fetchUser();
+        setIsAdmin(user.email === "admin@gmail.com");
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+
+    loadProducts();
+    checkAdminStatus();
+  }, []);
+
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleEdit = (product) => {
+    setSelectedProduct(product);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteProduct(id);
+      setProducts(products.filter((product) => product._id !== id));
+    } catch (error) {
+      console.error("Failed to delete product:", error);
+    }
+  };
+
+  const handleProductUpdated = async () => {
+    try {
+      const updatedProducts = await fetchProducts();
+      setProducts(updatedProducts);
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    }
+  };
 
   return (
     <React.Fragment>
-      <ProductNavbar />
+      <ProductNavbar setProducts={setProducts} />
       <Container style={{ paddingTop: "10rem" }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Product List
         </Typography>
-        <Grid container spacing={3}>
-          {products?.map((product) => (
+
+        <TextField
+          label="Search Products"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <Grid
+          container
+          spacing={3}
+          justifyContent={filteredProducts.length < 3 ? "center" : "flex-start"}
+        >
+          {filteredProducts.map((product) => (
             <Grid item xs={12} sm={6} md={4} key={product.id}>
               <Card>
                 <CardMedia
@@ -82,19 +125,63 @@ const ProductList = () => {
                   <Typography variant="body2" color="text.secondary">
                     {product.description}
                   </Typography>
-                  <Button
-                    component={Link}
-                    to={`/products/${product.id}`}
-                    variant="contained"
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
                   >
-                    View Details
-                  </Button>
+                    <Button
+                      component={Link}
+                      to={`/product-list/${product._id}`}
+                      variant="contained"
+                    >
+                      View Details
+                    </Button>
+
+                    {isAdmin && (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                          mt: 2,
+                        }}
+                      >
+                        <Tooltip title="Edit">
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleEdit(product)}
+                          >
+                            <Edit />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton
+                            color="error"
+                            onClick={() => handleDelete(product?._id)}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </Grid>
           ))}
         </Grid>
       </Container>
+
+      {selectedProduct && (
+        <EditProductModal
+          open={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          product={selectedProduct}
+          onProductUpdated={handleProductUpdated}
+        />
+      )}
     </React.Fragment>
   );
 };

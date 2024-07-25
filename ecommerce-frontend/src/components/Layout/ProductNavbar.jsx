@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Toolbar from "../Layout/AppBar";
@@ -8,6 +8,8 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
+import { jwtDecode } from "jwt-decode";
+import { createProduct, fetchProducts } from "../../services/api";
 
 const rightButton = {
   fontSize: 16,
@@ -15,9 +17,32 @@ const rightButton = {
   ml: 3,
 };
 
-function ProductNavbar() {
-  
+function ProductNavbar({ setProducts }) {
   const [open, setOpen] = useState(false);
+  const [productData, setProductData] = useState({
+    name: "",
+    description: "",
+    price: "",
+  });
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminStatus = () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const email = localStorage.getItem("email");
+          if (email === "admin@gmail.com") {
+            setIsAdmin(true);
+          }
+        } catch (error) {
+          console.error("Failed to decode token:", error);
+        }
+      }
+    };
+
+    checkAdminStatus();
+  }, []);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -25,6 +50,25 @@ function ProductNavbar() {
 
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setProductData({ ...productData, [name]: value });
+  };
+
+  const handleSubmit = async () => {
+    try {
+      await createProduct(productData);
+      alert("Product added successfully");
+      setProductData({ name: "", description: "", price: "" });
+      handleClose();
+      const updatedProducts = await fetchProducts();
+      setProducts(updatedProducts);
+    } catch (error) {
+      console.error("Error adding product:", error);
+      // alert("Failed to add product");
+    }
   };
 
   return (
@@ -48,13 +92,23 @@ function ProductNavbar() {
             paddingLeft: "1rem",
           }}
         >
+          {isAdmin && (
+            <Button
+              variant="contained"
+              color="success"
+              sx={rightButton}
+              onClick={handleClickOpen}
+            >
+              {"ADD PRODUCT"}
+            </Button>
+          )}
           <Button
             variant="contained"
-            color="success"
+            color="warning"
             sx={rightButton}
-            onClick={handleClickOpen} 
+            href="/cart"
           >
-            {"ADD PRODUCT"}
+            {"VIEW CART"}
           </Button>
           <Button
             variant="outlined"
@@ -81,6 +135,9 @@ function ProductNavbar() {
             type="text"
             fullWidth
             variant="outlined"
+            name="name"
+            value={productData.name}
+            onChange={handleInputChange}
           />
           <TextField
             margin="dense"
@@ -89,6 +146,9 @@ function ProductNavbar() {
             type="text"
             fullWidth
             variant="outlined"
+            name="description"
+            value={productData.description}
+            onChange={handleInputChange}
           />
           <TextField
             margin="dense"
@@ -97,13 +157,16 @@ function ProductNavbar() {
             type="number"
             fullWidth
             variant="outlined"
+            name="price"
+            value={productData.price}
+            onChange={handleInputChange}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={handleSubmit} color="primary">
             Add Product
           </Button>
         </DialogActions>
