@@ -75,7 +75,7 @@ exports.deleteVariant = async (req, res) => {
       return res.status(404).json({ message: "Variant not found" });
     }
 
-    await variant.remove();
+    await Variant.findByIdAndDelete(req.params.id);
 
     const product = await Product.findById(variant.product);
     if (product) {

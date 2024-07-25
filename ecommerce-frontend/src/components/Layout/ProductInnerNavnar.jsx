@@ -1,13 +1,15 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux"; // Import useDispatch
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Toolbar from "../Layout/AppBar";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
+import { createVariant, fetchProductById } from "../../services/api"; 
+
 
 const rightButton = {
   fontSize: 16,
@@ -15,8 +17,12 @@ const rightButton = {
   ml: 3,
 };
 
-function ProductInnerNavbar() {
+function ProductInnerNavbar({ productId, onVariantChange }) {
   const [open, setOpen] = useState(false);
+  const [size, setSize] = useState("");
+  const [color, setColor] = useState("");
+  const [stock, setStock] = useState(0);
+  const dispatch = useDispatch();
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -24,6 +30,18 @@ function ProductInnerNavbar() {
 
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleAddVariant = async () => {
+    const variantData = {
+      productId: productId,
+      color,
+      size,
+      stock,
+    };
+    await dispatch(createVariant(variantData));
+    setOpen(false);
+    onVariantChange();
   };
 
   return (
@@ -69,9 +87,6 @@ function ProductInnerNavbar() {
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{"Add New Variant"}</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Fill in the details to add a new variant.
-          </DialogContentText>
           <TextField
             autoFocus
             margin="dense"
@@ -80,6 +95,8 @@ function ProductInnerNavbar() {
             type="text"
             fullWidth
             variant="outlined"
+            value={size}
+            onChange={(e) => setSize(e.target.value)}
           />
           <TextField
             margin="dense"
@@ -88,6 +105,8 @@ function ProductInnerNavbar() {
             type="text"
             fullWidth
             variant="outlined"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
           />
           <TextField
             margin="dense"
@@ -96,13 +115,15 @@ function ProductInnerNavbar() {
             type="number"
             fullWidth
             variant="outlined"
+            value={stock}
+            onChange={(e) => setStock(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={handleAddVariant} color="primary">
             Add Variant
           </Button>
         </DialogActions>

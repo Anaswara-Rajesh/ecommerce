@@ -1,4 +1,5 @@
 import axios from "axios";
+import { addVariant } from "../store/variantSlice";
 
 const api = axios.create({
   baseURL: "http://localhost:5000/api",
@@ -51,7 +52,6 @@ export const createProduct = async (productData) => {
 };
 
 export const updateProduct = async (id, productData) => {
-  console.log(id, "iddddddddddddddd");
   const token = getToken();
   const response = await api.put(`/products/${id}`, productData, {
     headers: {
@@ -80,5 +80,39 @@ export const fetchUser = async () => {
   });
   return response.data;
 };
+
+export const createVariant = (variantData) => async (dispatch) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await api.post("/variants", variantData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    dispatch(addVariant(response.data));
+  } catch (error) {
+    console.error("Error creating variant:", error);
+  }
+};
+
+export const updateVariantById = (id, variantData) => {
+  const token = localStorage.getItem("token");
+  return api.put(`/variants/${id}`, variantData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+export const deleteVariantById = (id) => {
+  const token = localStorage.getItem("token");
+  return api.delete(`/variants/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+
 
 export default api;
