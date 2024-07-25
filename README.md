@@ -31,6 +31,8 @@ This project consists of a frontend application built with React and a backend A
 
   5: npm start
 
+  6: register with email : admin@gmail.com and password: admin [ they have the permission to add, edit, and delete both products and variants]
+
 ## Backend Setup
 
   1: cd/ecommerce-backend
