@@ -74,7 +74,6 @@ function ProductNavbar({ setProducts }) {
   return (
     <>
       <Toolbar sx={{ justifyContent: "space-between" }}>
-        <Box sx={{ flex: 1 }} />
         <Button
           variant="h6"
           underline="none"

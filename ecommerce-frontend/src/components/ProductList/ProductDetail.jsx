@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
   Typography,
@@ -14,6 +14,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductById } from "../../services/api";
@@ -22,6 +24,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import { updateVariant, deleteVariant } from "../../store/variantSlice";
+import { addToCart } from "../../store/cartSlice";
 
 const images = [
   "/shirt1.jpeg",
@@ -39,9 +42,16 @@ const getRandomImage = () => {
 const ProductDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [editVariant, setEditVariant] = useState(null);
   const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const cartStatus = useSelector((state) => state?.cart?.status);
+  const cartError = useSelector((state) => state?.cart?.error);
 
   const loadProduct = async () => {
     try {
@@ -68,23 +78,43 @@ const ProductDetail = () => {
 
   const handleUpdateVariant = async () => {
     if (editVariant) {
-      await dispatch(updateVariant(editVariant._id, editVariant));
+      await dispatch(updateVariant(editVariant?._id, editVariant));
       handleCloseEditDialog();
-      loadProduct(); 
+      loadProduct();
     }
   };
 
   const handleDeleteVariant = async (variantId) => {
     await dispatch(deleteVariant(variantId));
-    loadProduct(); 
+    loadProduct();
   };
 
-  const handleAddToCart = (variantId) => {
-    console.log(`Add variant ${variantId} to cart`);
+  const handleBackClick = () => {
+    navigate("/product-list"); 
+  };
+
+  const handleAddToCart = async (variantId) => {
+    try {
+      console.log(variantId, "variantId");
+      await dispatch(
+        addToCart({ productId: id, variantId, quantity: 1 })
+      ).unwrap();
+      setSnackbarMessage("Item added to cart successfully!");
+      setSnackbarSeverity("success");
+    } catch (error) {
+      setSnackbarMessage(error);
+      setSnackbarSeverity("error");
+    } finally {
+      setSnackbarOpen(true);
+    }
   };
 
   const handleChange = (e) => {
     setEditVariant({ ...editVariant, [e.target.name]: e.target.value });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
   };
 
   if (!product) {
@@ -101,16 +131,24 @@ const ProductDetail = () => {
     <React.Fragment>
       <ProductInnerNavbar productId={id} onVariantChange={loadProduct} />
       <Container style={{ paddingTop: "10rem" }}>
+      <Button
+          variant="contained"
+          color="inherit"
+          onClick={handleBackClick}
+          style={{ marginBottom: "1rem" }}
+        >
+          Back to Products
+        </Button>
         <Card>
           <CardMedia
             component="img"
             height="350"
             image={getRandomImage()}
-            alt={product.name}
+            alt={product?.name}
           />
           <CardContent>
             <Typography variant="h4" component="h1" gutterBottom>
-              {product.name}
+              {product?.name}
             </Typography>
             <Typography variant="body1" color="text.secondary" gutterBottom>
               {product.description}
@@ -119,7 +157,7 @@ const ProductDetail = () => {
               {product.variants?.length > 0 && "Variants"}
             </Typography>
             <Grid container spacing={2}>
-              {product?.variants.map((variant) => (
+              {product?.variants?.map((variant) => (
                 <Grid item key={variant.id} xs={12} sm={6} md={4}>
                   <Card variant="outlined">
                     <CardContent>
@@ -143,10 +181,13 @@ const ProductDetail = () => {
                           variant="contained"
                           color="primary"
                           style={{ marginTop: "1rem" }}
-                          onClick={() => handleAddToCart(variant.id)}
+                          onClick={() => handleAddToCart(variant._id)}
                           startIcon={<AddShoppingCartIcon />}
+                          disabled={cartStatus === "loading"}
                         >
-                          Add to Cart
+                          {cartStatus === "loading"
+                            ? "Adding..."
+                            : "Add to Cart"}
                         </Button>
                         <div style={{ display: "flex", marginTop: "1rem" }}>
                           <IconButton
@@ -157,7 +198,7 @@ const ProductDetail = () => {
                           </IconButton>
                           <IconButton
                             color="secondary"
-                            onClick={() => handleDeleteVariant(variant._id)}
+                            onClick={() => handleDeleteVariant(variant?._id)}
                           >
                             <DeleteIcon />
                           </IconButton>
@@ -212,6 +253,20 @@ const ProductDetail = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={3000}
+          onClose={handleCloseSnackbar}
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={snackbarSeverity}
+            sx={{ width: "100%" }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </Container>
     </React.Fragment>
   );

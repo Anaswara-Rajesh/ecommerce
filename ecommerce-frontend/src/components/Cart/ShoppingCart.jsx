@@ -1,63 +1,153 @@
-import React from "react";
-import { Typography, Container, Grid, Button, TextField } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Typography,
+  Container,
+  Grid,
+  Button,
+  CircularProgress,
+  Card,
+  CardContent,
+  Divider,
+} from "@mui/material";
 import ProductInnerNavbar from "../Layout/ProductInnerNavnar";
-
+import { getCartItems, removeCartItem, clearCart } from "../../services/api";
 const ShoppingCart = () => {
-  const handleRemove = (id, variant) => {};
+  const [items, setItems] = useState([]);
+  const [status, setStatus] = useState("idle");
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const handleClearCheckout = () => {};
+  const fetchCartItems = async () => {
+    setStatus("loading");
+    try {
+      const response = await getCartItems();
+      console.log(response?.items, "response?.data?.items");
+      setItems(response?.items || []);
+      setStatus("succeeded");
+    } catch (error) {
+      setError(error.message);
+      setStatus("failed");
+    }
+  };
 
-  const cart = [];
+  useEffect(() => {
+    fetchCartItems();
+  }, []);
+
+  const handleBackClick = () => {
+    navigate("/product-list");
+  };
+
+  const handleRemove = async (itemId, variantId) => {
+    try {
+      await removeCartItem(itemId, variantId);
+      setItems(
+        items.filter(
+          (item) =>
+            !(item.product.id === itemId && item.variant.id === variantId)
+        )
+      );
+      fetchCartItems();
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const handleClearCheckout = async () => {
+    try {
+      await clearCart();
+      setItems([]);
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const totalItems = items.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <React.Fragment>
       <ProductInnerNavbar />
-      <Container style={{padding:"10rem"}}>
+      <Container sx={{ padding: "10rem", maxWidth: "md" }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Shopping Cart
         </Typography>
-        {cart?.items?.length === 0 ? (
-          <Typography>Your cart is empty</Typography>
+        {status === "loading" ? (
+          <CircularProgress />
+        ) : items.length === 0 ? (
+          <Typography>
+            <Typography> Your cart is empty</Typography>
+            <Button
+              variant="contained"
+              color="inherit"
+              onClick={handleBackClick}
+              style={{ marginBottom: "1rem" }}
+            >
+              Back to Products
+            </Button>
+          </Typography>
         ) : (
           <>
             <Grid container spacing={3}>
-              {cart?.items?.map((item) => (
-                <Grid item xs={12} key={`${item.id}-${item.variant}`}>
-                  <Typography variant="h6">{item.name}</Typography>
-                  <Typography variant="body2">Color: {item?.color}</Typography>
-                  <Typography variant="body2">Size: {item?.size}</Typography>
-                  <Typography variant="body2">
-                    Quantity: ${item?.quantity}
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    onClick={() => handleRemove(item.id, item.variant)}
-                  >
-                    Remove
-                  </Button>
+              {items.map((item) => (
+                <Grid
+                  item
+                  xs={12}
+                  sm={6}
+                  md={4}
+                  key={`${item?.product}-${item?.variant}`}
+                >
+                  <Card variant="outlined">
+                    <CardContent>
+                      <Typography variant="h6" component="div">
+                        {item?.product?.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Color: {item?.variant?.color}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Size: {item?.variant?.size}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Quantity: {item?.quantity}
+                      </Typography>
+                      <Divider sx={{ my: 2 }} />
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => handleRemove(item.product, item.variant)}
+                        sx={{ mr: 1 }}
+                      >
+                        Remove
+                      </Button>
+                    </CardContent>
+                  </Card>
                 </Grid>
               ))}
             </Grid>
-            <Typography variant="h6" component="h2" gutterBottom>
-              Total Items: ${0}
+            <Typography variant="h6" component="h2" gutterBottom sx={{ mt: 4 }}>
+              Total Items: {totalItems}
             </Typography>
             <Button
               variant="contained"
               color="primary"
-              onClick={() => alert("Checkout not implemented")}
-            >
-              Checkout
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => handleClearCheckout()}
+              onClick={handleClearCheckout}
             >
               Clear Cart
             </Button>
+            <Typography style={{ paddingTop: "6vh" }} gutterBottom>
+              <Button
+                variant="contained"
+                color="inherit"
+                onClick={handleBackClick}
+                style={{ marginBottom: "1rem" }}
+              >
+                Back to Products
+              </Button>
+            </Typography>
           </>
         )}
+        {status === "failed" && <Typography color="error">{error}</Typography>}
       </Container>
     </React.Fragment>
   );

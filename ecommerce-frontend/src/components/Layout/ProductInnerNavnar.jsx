@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux"; // Import useDispatch
+import { useDispatch, useSelector } from "react-redux";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Toolbar from "../Layout/AppBar";
@@ -8,8 +8,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
-import { createVariant, fetchProductById } from "../../services/api"; 
-
+import { createVariant } from "../../services/api";
 
 const rightButton = {
   fontSize: 16,
@@ -23,6 +22,8 @@ function ProductInnerNavbar({ productId, onVariantChange }) {
   const [color, setColor] = useState("");
   const [stock, setStock] = useState(0);
   const dispatch = useDispatch();
+
+  const userEmail = localStorage?.getItem("email");
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -47,7 +48,6 @@ function ProductInnerNavbar({ productId, onVariantChange }) {
   return (
     <>
       <Toolbar sx={{ justifyContent: "space-between" }}>
-        <Box sx={{ flex: 1 }} />
         <Button
           variant="h6"
           underline="none"
@@ -65,13 +65,24 @@ function ProductInnerNavbar({ productId, onVariantChange }) {
             paddingLeft: "1rem",
           }}
         >
+          {userEmail === "admin@gmail.com" && (
+            <Button
+              variant="contained"
+              color="success"
+              sx={rightButton}
+              onClick={handleClickOpen}
+            >
+              {"ADD VARIANT"}
+            </Button>
+          )}
+
           <Button
             variant="contained"
-            color="success"
+            color="warning"
             sx={rightButton}
-            onClick={handleClickOpen}
+            href="/cart"
           >
-            {"ADD VARIANT"}
+            {"VIEW CART"}
           </Button>
           <Button
             variant="outlined"
